@@ -1,0 +1,6 @@
+{
+  "name": "Premium Interaktiv Web-Taklifnoma",
+  "description": "Apple, Stripe va Awwwards darajasidagi, 3D interaktiv xususiyatlarga, premium visual dizaynga va RSVP tizimiga ega bo'lgan mukammal onlayn taklifnoma.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
