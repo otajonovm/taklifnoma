@@ -49,19 +49,26 @@ export default function WeddingInvitation() {
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
   const [formError, setFormError] = useState('');
 
-  // Measure screen for responsive scaling and mobile view detection
+  // Measure screen for responsive scaling and mobile view detection.
+  // Mobile scales to a single page (425px), not the full 850px spread — otherwise the card looks tiny.
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
+      const height = window.innerHeight;
       const isMobileSize = width < 768;
       setIsMobile(isMobileSize);
-      
-      // The book container is always 850px wide.
-      // We calculate the scale so that the book fits within the viewport with a consistent margin.
-      if (width < 900) {
-        const margin = isMobileSize ? 24 : 32;
-        const calculatedScale = Math.max(0.32, (width - margin) / 850);
-        setScale(calculatedScale);
+
+      const BOOK_W = 850;
+      const PAGE_W = 425;
+      const BOOK_H = 550;
+
+      if (isMobileSize) {
+        const availableW = width - 20;
+        const availableH = height - 175; // header + nav + safe padding
+        const nextScale = Math.min(availableW / PAGE_W, availableH / BOOK_H);
+        setScale(Math.min(Math.max(nextScale, 0.72), 1.08));
+      } else if (width < 900) {
+        setScale(Math.max(0.55, (width - 32) / BOOK_W));
       } else {
         setScale(1);
       }
@@ -143,15 +150,25 @@ export default function WeddingInvitation() {
     return () => clearInterval(interval);
   }, []);
 
-  // Flipping Controls (Fully responsive for mobile and desktop)
+  // Flipping controls: mobile turns one page at a time; desktop turns full spreads.
+  const maxPage = 6;
+
   const nextPage = () => {
     startMusicOnInteraction();
+    if (isMobile) {
+      if (activePage < maxPage) setActivePage(activePage + 1);
+      return;
+    }
     if (currentSpread < totalSpreads) {
       setActivePage(currentSpread * 2 + 1);
     }
   };
 
   const prevPage = () => {
+    if (isMobile) {
+      if (activePage > 0) setActivePage(activePage - 1);
+      return;
+    }
     if (currentSpread > 0) {
       if (currentSpread === 1) {
         setActivePage(0);
@@ -160,6 +177,11 @@ export default function WeddingInvitation() {
       }
     }
   };
+
+  // Center the active page in the viewport (mobile shows one page; desktop centers the cover/spread).
+  const bookTranslateX = isMobile
+    ? (activePage % 2 === 0 ? 'translateX(-25%)' : 'translateX(25%)')
+    : (currentSpread === 0 ? 'translateX(-25%)' : 'translateX(0)');
 
   // RSVP Form submission handler
   const handleRsvpSubmit = (e: React.FormEvent) => {
@@ -625,7 +647,7 @@ export default function WeddingInvitation() {
   );
 
   return (
-    <main id="main-content" className="relative flex flex-col items-center justify-between min-h-screen py-6 px-4 md:py-10 select-none overflow-hidden bg-[#0B0F19] font-sans">
+    <main id="main-content" className="relative flex flex-col items-center justify-between min-h-dvh py-3 px-2 sm:py-6 sm:px-4 md:py-10 select-none overflow-hidden bg-[#0B0F19] font-sans">
       
       {/* Background decorations */}
       <div className="absolute top-1/4 left-1/4 w-[50vw] h-[50vw] max-w-[500px] rounded-full ambient-glow pointer-events-none -translate-x-1/2 -translate-y-1/2" id="bg-glow-1"></div>
@@ -659,11 +681,11 @@ export default function WeddingInvitation() {
       </div>
 
       {/* Top Header / Monogram */}
-      <header className="z-10 text-center mb-4 transition-all duration-700" id="header-section">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-[#D4AF37]/30 bg-[#0B0F19]/90 shadow-[0_0_10px_rgba(212,175,55,0.05)] mb-2" id="monogram-badge">
-          <Heart size={18} className="text-[#D4AF37]/80 fill-[#D4AF37]/10 animate-pulse-slow" />
+      <header className="z-10 text-center mb-1 sm:mb-4 transition-all duration-700" id="header-section">
+        <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-[#D4AF37]/30 bg-[#0B0F19]/90 shadow-[0_0_10px_rgba(212,175,55,0.05)] mb-1 sm:mb-2" id="monogram-badge">
+          <Heart size={16} className="text-[#D4AF37]/80 fill-[#D4AF37]/10 animate-pulse-slow sm:w-[18px] sm:h-[18px]" />
         </div>
-        <h2 className="font-display tracking-[0.25em] text-xs font-semibold text-amber-200/80 uppercase">
+        <h2 className="font-display tracking-[0.25em] text-[10px] sm:text-xs font-semibold text-amber-200/80 uppercase">
           Lutfan Taklif Etamiz
         </h2>
       </header>
@@ -671,28 +693,30 @@ export default function WeddingInvitation() {
       {/* BOOK PLAYGROUND SECTION */}
       <section 
         id="book-playground"
-        className="flex items-center justify-center flex-1 w-full my-6 transition-transform duration-700 overflow-hidden"
+        className="relative flex items-center justify-center flex-1 w-full my-2 sm:my-6 overflow-hidden mx-auto"
         style={{
+          width: `${(isMobile ? 425 : 850) * scale}px`,
           height: `${550 * scale}px`,
+          maxWidth: '100%',
         }}
       >
-        {/* Responsive viewport wrapper for mobile centered panning and global scaling */}
+        {/* Scaled book sits in a fixed viewport so one mobile page fills the screen */}
         <div 
-          className="relative overflow-visible flex items-center justify-center"
+          className="absolute left-1/2 top-1/2"
           style={{
             width: '850px',
             height: '550px',
-            transform: `scale(${scale})`,
+            transform: `translate(-50%, -50%) scale(${scale})`,
             transformOrigin: 'center center',
           }}
         >
           {/* Main Book 3D Container */}
           <div 
-            className="book-container relative transition-all duration-1000 ease-in-out origin-center animate-fade-in"
+            className="book-container relative transition-all duration-700 ease-in-out origin-center animate-fade-in"
             style={{
               width: '850px',
               height: '550px',
-              transform: currentSpread === 0 ? 'translateX(-25%)' : 'translateX(0)',
+              transform: bookTranslateX,
             }}
             onClick={startMusicOnInteraction}
           >
@@ -779,21 +803,21 @@ export default function WeddingInvitation() {
       </section>
 
       {/* Navigation and spread indicators below the book */}
-      <footer className="z-10 flex flex-col items-center gap-4 w-full max-w-md" id="footer-section">
+      <footer className="z-10 flex flex-col items-center gap-2 sm:gap-4 w-full max-w-md mt-1" id="footer-section">
         {/* Progress Bar / Dots */}
-        <div className="flex items-center gap-4 py-2 w-full justify-center" id="progress-container">
+        <div className="flex items-center gap-3 sm:gap-4 py-1 sm:py-2 w-full justify-center" id="progress-container">
           <button 
             id="prev-page-arrow"
             onClick={prevPage}
-            disabled={currentSpread === 0}
-            className={`p-2 rounded-full border transition-all duration-300 ${
-              currentSpread === 0
+            disabled={isMobile ? activePage === 0 : currentSpread === 0}
+            className={`p-2.5 sm:p-2 rounded-full border transition-all duration-300 ${
+              (isMobile ? activePage === 0 : currentSpread === 0)
                 ? 'border-[#D4AF37]/5 text-[#D4AF37]/10 cursor-not-allowed' 
                 : 'border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 active:scale-90 shadow-md'
             }`}
             aria-label="Oldingi sahifa"
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={18} />
           </button>
 
           {/* Spread indicator dots */}
@@ -819,15 +843,15 @@ export default function WeddingInvitation() {
           <button 
             id="next-page-arrow"
             onClick={nextPage}
-            disabled={currentSpread === totalSpreads}
-            className={`p-2 rounded-full border transition-all duration-300 ${
-              currentSpread === totalSpreads
+            disabled={isMobile ? activePage === maxPage : currentSpread === totalSpreads}
+            className={`p-2.5 sm:p-2 rounded-full border transition-all duration-300 ${
+              (isMobile ? activePage === maxPage : currentSpread === totalSpreads)
                 ? 'border-[#D4AF37]/5 text-[#D4AF37]/10 cursor-not-allowed' 
                 : 'border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 active:scale-90 shadow-md'
             }`}
             aria-label="Keyingi sahifa"
           >
-            <ChevronRight size={16} />
+            <ChevronRight size={18} />
           </button>
         </div>
 
