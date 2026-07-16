@@ -1,57 +1,31 @@
 import type {Metadata} from 'next';
-import { Inter, Cormorant_Garamond } from 'next/font/google';
-import { getPageDescription, getPageTitle, INVITATION } from '@/lib/invitation-config';
-import './globals.css';
+import { Inter, Playfair_Display, Cinzel } from 'next/font/google';
+import './globals.css'; // Global styles
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
-  display: 'swap',
 });
 
-const cormorantGaramond = Cormorant_Garamond({
-  subsets: ['latin', 'cyrillic'],
+const playfair = Playfair_Display({
+  subsets: ['latin'],
   variable: '--font-serif',
-  weight: ['300', '400', '500', '600', '700'],
-  style: ['normal', 'italic'],
-  display: 'swap',
 });
 
-const title = getPageTitle();
-const description = getPageDescription();
+const cinzel = Cinzel({
+  subsets: ['latin'],
+  variable: '--font-display',
+});
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.APP_URL || 'http://localhost:3000'),
-  title,
-  description,
-  applicationName: `${INVITATION.coupleShort} Taklifnoma`,
-  keywords: [
-    INVITATION.coupleShort,
-    INVITATION.groom,
-    INVITATION.bride,
-    'nikoh taklifnomasi',
-    INVITATION.eventTitle,
-    INVITATION.venue,
-    INVITATION.eventDate,
-  ],
-  openGraph: {
-    title,
-    description,
-    type: 'website',
-    locale: 'uz_UZ',
-    siteName: `${INVITATION.coupleShort} — Taklifnoma`,
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title,
-    description,
-  },
+  title: 'Hamidullo & Muborakhon - Nikoh To\'y Taklifnomasi',
+  description: 'Hamidullo va Muboraxonning to\'y marosimi uchun interaktiv 3D kitob ko\'rinishidagi premium taklifnoma.',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="uz" className={`${inter.variable} ${cormorantGaramond.variable}`}>
-      <body className="bg-[#0B0F19] text-gray-100 antialiased font-sans" suppressHydrationWarning>
+    <html lang="uz" className={`${inter.variable} ${playfair.variable} ${cinzel.variable}`}>
+      <body suppressHydrationWarning className="bg-[#05070f] text-gray-100 min-h-screen selection:bg-amber-500/20 selection:text-amber-300 font-sans antialiased overflow-x-hidden">
         {children}
       </body>
     </html>

@@ -1,6 +1,6 @@
 {
-  "name": "Premium Interaktiv Web-Taklifnoma",
-  "description": "Apple, Stripe va Awwwards darajasidagi, 3D interaktiv xususiyatlarga, premium visual dizaynga va RSVP tizimiga ega bo'lgan mukammal onlayn taklifnoma.",
+  "name": "Hamidullo & Muborakhon - Wedding Invitation",
+  "description": "Hamidullo va Muboraxonning to'y marosimi uchun interaktiv 3D kitob ko'rinishidagi premium taklifnoma.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

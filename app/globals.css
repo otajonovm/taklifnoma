@@ -1,7 +1,182 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
-@theme {
-  --font-serif: var(--font-serif);
-  --font-sans: var(--font-sans);
+@layer base {
+  :root {
+    --gold-light: #F3E5AB;
+    --gold-mid: #D4AF37;
+    --gold-dark: #AA771C;
+    --gold-deep: #8B6508;
+    --velvet-dark: #070913;
+    --velvet-light: #0d1222;
+    --gold: #D4AF37;
+    --paper: #FDFBF7;
+    --dark-bg: #0B0F19;
+  }
 }
+
+/* Base custom classes */
+.font-sans {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.font-serif {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+.font-display {
+  font-family: var(--font-display), "Cinzel", Times New Roman, serif;
+}
+
+/* Immersive UI Cover Page & Paper */
+.cover-page {
+  background: radial-gradient(circle at center, #2d3748 0%, #1a202c 100%) !important;
+  border: 4px solid #D4AF37 !important;
+}
+
+.paper-page {
+  background-color: #FDFBF7 !important;
+  box-shadow: inset 3px 0 20px rgba(0, 0, 0, 0.08), inset -3px 0 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Premium Gold Utilities */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FFF6D6 0%, #F5D061 30%, #D4AF37 50%, #B8860B 80%, #E3BA43 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: #D4AF37;
+  text-shadow: 0 0 2px rgba(212, 175, 55, 0.15);
+}
+
+.text-gold-soft {
+  color: #E2C275;
+}
+
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #FFF6D6 0%, #F5D061 35%, #D4AF37 50%, #B8860B 80%, #F5D061 100%);
+}
+
+.bg-gold-dark {
+  background: linear-gradient(135deg, #AA771C 0%, #8B6508 50%, #5C4008 100%);
+}
+
+.border-gold {
+  border-image: linear-gradient(to right, #AA771C, #F5D061, #D4AF37, #8B6508) 1;
+}
+
+.border-gold-radial {
+  border-image: radial-gradient(circle, #F5D061 0%, #AA771C 80%, #5C4008 100%) 1;
+}
+
+/* 3D Book Setup */
+.book-container {
+  perspective: 2200px;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.book-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.book-leaf {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  top: 0;
+  right: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+  pointer-events: auto;
+}
+
+.book-page-side {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  box-shadow: inset 3px 0 25px rgba(0, 0, 0, 0.3);
+}
+
+.book-page-front {
+  z-index: 2;
+  transform: rotateY(0deg);
+}
+
+.book-page-back {
+  z-index: 1;
+  transform: rotateY(180deg);
+}
+
+/* Left & Right page specific internal shadows for binding depth */
+.inner-shadow-left {
+  background-image: linear-gradient(to right, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 8%, rgba(0,0,0,0) 100%);
+}
+
+.inner-shadow-right {
+  background-image: linear-gradient(to left, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 8%, rgba(0,0,0,0) 100%);
+}
+
+.center-spine-shadow {
+  background-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.2) 45%,
+    rgba(0, 0, 0, 0.65) 49%,
+    rgba(0, 0, 0, 0.8) 50%,
+    rgba(0, 0, 0, 0.65) 51%,
+    rgba(0, 0, 0, 0.2) 55%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+/* Beautiful Animated Background Elements */
+.ambient-glow {
+  filter: blur(140px);
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, rgba(13, 18, 34, 0) 70%);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+/* Soft transition overlay for turning page reflection */
+.page-reflection {
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.15) 100%);
+}
+
+/* Elegant gold ornament borders */
+.ornament-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+.ornament-tl { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+.ornament-tr { top: 12px; right: 12px; border-left: none; border-bottom: none; }
+.ornament-bl { bottom: 12px; left: 12px; border-right: none; border-top: none; }
+.ornament-br { bottom: 12px; right: 12px; border-left: none; border-top: none; }
