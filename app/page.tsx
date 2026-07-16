@@ -229,7 +229,7 @@ export default function WeddingInvitation() {
 
   // Helper function to handle opening Google Maps
   const openMap = () => {
-    window.open("https://maps.google.com/?q=Sherdor+To'yxonasi,+Yangiyo'l", "_blank");
+    window.open("https://maps.app.goo.gl/hwoUh9EFxbAZdj1D8", "_blank");
   };
 
   // ==================== RENDERING INDIVIDUAL PAGES ====================
@@ -470,7 +470,7 @@ export default function WeddingInvitation() {
         <div className={`relative w-full ${isMobileView ? 'h-[160px]' : 'h-[220px]'} rounded-xl overflow-hidden border border-[#D4AF37]/25 shadow-md bg-slate-950`} id="map-iframe-container">
           <iframe 
             id="google-maps-frame"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2999.8258284521477!2d69.04351687661262!3d41.17105267132742!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38ae6143c79aef41%3A0xe5a3c61d5dbb9cf1!2sSherdor%20To&#39;yxonasi!5e0!3m2!1suz!2suz!4v1700000000000!5m2!1suz!2suz" 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2998.5!2d69.0770747!3d41.1257616!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38ae7b3ce8d9151b%3A0x9f69fc522a1ca23e!2sSherdor%20To%27yxonasi!5e0!3m2!1suz!2suz!4v1721130000000!5m2!1suz!2suz" 
             width="100%" 
             height="100%" 
             style={{ border: 0 }} 
