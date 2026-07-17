@@ -237,7 +237,11 @@ export default function WeddingInvitation() {
   // ==================== RENDERING INDIVIDUAL PAGES ====================
 
   const renderCover = (isMobileView: boolean = false) => (
-    <div className={`book-page-side book-page-front cover-page border-r border-[#D4AF37]/40 ${isMobileView ? 'rounded-xl h-full' : 'rounded-r-xl h-full'} flex flex-col justify-between ${isMobileView ? 'p-6' : 'p-8'} text-center relative w-full`} id="page-1-front">
+    <div
+      className={`book-page-side book-page-front cover-page border-r border-[#D4AF37]/40 ${isMobileView ? 'rounded-xl h-full' : 'rounded-r-xl h-full'} flex flex-col justify-between ${isMobileView ? 'p-6' : 'p-8'} text-center relative w-full`}
+      id="page-1-front"
+      style={{ left: -2, top: 1 }}
+    >
       {/* Gold frames */}
       <div className="absolute inset-4 border border-[#D4AF37]/30 rounded-lg pointer-events-none"></div>
       <div className="absolute inset-5 border border-[#D4AF37]/10 rounded-md pointer-events-none"></div>
@@ -647,19 +651,46 @@ export default function WeddingInvitation() {
   );
 
   return (
-    <main id="main-content" className="relative flex flex-col items-center justify-between min-h-dvh py-3 px-2 sm:py-6 sm:px-4 md:py-10 select-none overflow-hidden bg-[#0B0F19] font-sans">
+    <main id="main-content" className="invitation-stage relative flex flex-col items-center justify-between min-h-dvh py-3 px-2 sm:py-6 sm:px-4 md:py-10 select-none overflow-hidden font-sans">
       
-      {/* Background decorations */}
-      <div className="absolute top-1/4 left-1/4 w-[50vw] h-[50vw] max-w-[500px] rounded-full ambient-glow pointer-events-none -translate-x-1/2 -translate-y-1/2" id="bg-glow-1"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-[50vw] h-[50vw] max-w-[500px] rounded-full ambient-glow pointer-events-none translate-x-1/2 translate-y-1/2 opacity-70" id="bg-glow-2"></div>
-      
-      {/* Sparkles particle system background */}
-      <div className="absolute inset-0 bg-[radial-gradient(#ffffff08_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-40" id="bg-dots"></div>
+      {/* Atmospheric wedding stage: candle washes, dust, soft rings */}
+      <div className="bg-candle-wash bg-candle-wash--a" aria-hidden="true" />
+      <div className="bg-candle-wash bg-candle-wash--b" aria-hidden="true" />
+      <div className="bg-candle-wash bg-candle-wash--c" aria-hidden="true" />
 
-      {/* Floating Gold Petals Decor */}
-      <div className="absolute top-[10%] left-[8%] w-6 h-6 border border-amber-500/20 rounded-full animate-float pointer-events-none" style={{ animationDelay: '0s' }}></div>
-      <div className="absolute bottom-[15%] left-[12%] w-4 h-4 border border-amber-500/10 rounded-full animate-float pointer-events-none" style={{ animationDelay: '2s' }}></div>
-      <div className="absolute top-[20%] right-[10%] w-5 h-5 border border-amber-500/20 rounded-full animate-float pointer-events-none" style={{ animationDelay: '4s' }}></div>
+      <div
+        className="bg-ornament-ring pointer-events-none"
+        aria-hidden="true"
+        style={{
+          top: '50%',
+          left: '50%',
+          width: 'min(92vw, 720px)',
+          height: 'min(92vw, 720px)',
+          transform: 'translate(-50%, -50%)',
+        }}
+      />
+      <div
+        className="bg-ornament-ring pointer-events-none"
+        aria-hidden="true"
+        style={{
+          top: '50%',
+          left: '50%',
+          width: 'min(70vw, 520px)',
+          height: 'min(70vw, 520px)',
+          transform: 'translate(-50%, -50%)',
+          animationDelay: '-6s',
+          borderColor: 'rgba(212, 175, 55, 0.08)',
+        }}
+      />
+
+      <div className="bg-dust" aria-hidden="true">
+        <span style={{ left: '12%', bottom: '8%', animationDuration: '14s', animationDelay: '0s' }} />
+        <span style={{ left: '28%', bottom: '0%', animationDuration: '18s', animationDelay: '3s', width: 2, height: 2 }} />
+        <span style={{ left: '48%', bottom: '12%', animationDuration: '16s', animationDelay: '1s' }} />
+        <span style={{ left: '67%', bottom: '4%', animationDuration: '20s', animationDelay: '5s', width: 2, height: 2 }} />
+        <span style={{ left: '82%', bottom: '16%', animationDuration: '15s', animationDelay: '2s' }} />
+        <span style={{ left: '91%', bottom: '6%', animationDuration: '19s', animationDelay: '7s', width: 2, height: 2 }} />
+      </div>
       
       {/* Music Control Indicator */}
       <div className="fixed top-6 right-6 z-50 flex items-center gap-3 bg-slate-900/80 backdrop-blur-md border border-[#D4AF37]/30 rounded-full py-1.5 pl-3 pr-1.5 shadow-lg shadow-black/50" id="audio-panel">
@@ -693,7 +724,7 @@ export default function WeddingInvitation() {
       {/* BOOK PLAYGROUND SECTION */}
       <section 
         id="book-playground"
-        className="relative flex items-center justify-center flex-1 w-full my-2 sm:my-6 overflow-hidden mx-auto"
+        className="relative z-10 flex items-center justify-center flex-1 w-full my-2 sm:my-6 overflow-hidden mx-auto"
         style={{
           width: `${(isMobile ? 425 : 850) * scale}px`,
           height: `${550 * scale}px`,

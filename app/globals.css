@@ -20,11 +20,30 @@
 }
 
 .font-serif {
-  font-family: var(--font-serif), Georgia, serif;
+  font-family: var(--font-sans), Georgia, serif;
 }
 
 .font-display {
-  font-family: var(--font-display), "Cinzel", Times New Roman, serif;
+  font-family: var(--font-sans), "Old Standard TT", serif;
+}
+
+/* Old Standard TT explicit styles (any element that needs exact weight/style) */
+.old-standard-tt-regular {
+  font-family: "Old Standard TT", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.old-standard-tt-bold {
+  font-family: "Old Standard TT", serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.old-standard-tt-regular-italic {
+  font-family: "Old Standard TT", serif;
+  font-weight: 400;
+  font-style: italic;
 }
 
 /* Immersive UI Cover Page & Paper */
@@ -140,9 +159,111 @@
 }
 
 /* Beautiful Animated Background Elements */
-.ambient-glow {
-  filter: blur(140px);
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, rgba(13, 18, 34, 0) 70%);
+.invitation-stage {
+  background-color: #07090f;
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(212, 175, 55, 0.18), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 100% 100%, rgba(120, 70, 20, 0.22), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 0% 85%, rgba(40, 55, 90, 0.35), transparent 55%),
+    radial-gradient(ellipse 50% 35% at 50% 55%, rgba(212, 175, 55, 0.06), transparent 70%),
+    linear-gradient(180deg, #0c101c 0%, #07090f 45%, #05070c 100%);
+}
+
+.invitation-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23D4AF37' stroke-opacity='0.09'%3E%3Cpath d='M40 8c6 8 6 16 0 24-6-8-6-16 0-24zm0 40c6 8 6 16 0 24-6-8-6-16 0-24zM8 40c8-6 16-6 24 0-8 6-16 6-24 0zm40 0c8-6 16-6 24 0-8 6-16 6-24 0z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 70% 65% at 50% 45%, black 20%, transparent 75%);
+}
+
+.invitation-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 85% 70% at 50% 45%, transparent 35%, rgba(3, 5, 10, 0.72) 100%),
+    linear-gradient(to bottom, rgba(5, 7, 12, 0.35) 0%, transparent 18%, transparent 82%, rgba(5, 7, 12, 0.55) 100%);
+}
+
+.bg-candle-wash {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(80px);
+  animation: candle-breathe 9s ease-in-out infinite;
+}
+
+.bg-candle-wash--a {
+  top: 8%;
+  left: 12%;
+  width: min(55vw, 420px);
+  height: min(55vw, 420px);
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, transparent 70%);
+}
+
+.bg-candle-wash--b {
+  bottom: 5%;
+  right: 8%;
+  width: min(50vw, 380px);
+  height: min(50vw, 380px);
+  background: radial-gradient(circle, rgba(180, 120, 40, 0.16) 0%, transparent 70%);
+  animation-delay: -4s;
+}
+
+.bg-candle-wash--c {
+  top: calc(40% - min(20vw, 150px));
+  left: calc(50% - min(20vw, 150px));
+  width: min(40vw, 300px);
+  height: min(40vw, 300px);
+  background: radial-gradient(circle, rgba(255, 220, 140, 0.08) 0%, transparent 70%);
+  animation-delay: -2s;
+}
+
+.bg-dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bg-dust span {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(243, 229, 171, 0.55);
+  box-shadow: 0 0 6px rgba(212, 175, 55, 0.35);
+  animation: dust-drift linear infinite;
+}
+
+.bg-ornament-ring {
+  position: absolute;
+  border: 1px solid rgba(212, 175, 55, 0.12);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: ring-pulse 12s ease-in-out infinite;
+}
+
+@keyframes candle-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.08); }
+}
+
+@keyframes dust-drift {
+  0% { transform: translateY(20px) translateX(0); opacity: 0; }
+  15% { opacity: 0.7; }
+  85% { opacity: 0.4; }
+  100% { transform: translateY(-100vh) translateX(18px); opacity: 0; }
+}
+
+@keyframes ring-pulse {
+  0%, 100% { opacity: 0.35; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.65; transform: translate(-50%, -50%) scale(1.04); }
 }
 
 @keyframes float {
@@ -161,6 +282,15 @@
 
 .animate-pulse-slow {
   animation: pulse-slow 3s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out both;
 }
 
 /* Soft transition overlay for turning page reflection */
