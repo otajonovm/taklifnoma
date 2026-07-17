@@ -33,6 +33,7 @@ export default function WeddingInvitation() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioLoaded, setAudioLoaded] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const touchStartX = useRef<number | null>(null);
 
   // Countdown State
   const [timeLeft, setTimeLeft] = useState({
@@ -54,7 +55,7 @@ export default function WeddingInvitation() {
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
-      const height = window.innerHeight;
+      const height = window.visualViewport?.height ?? window.innerHeight;
       const isMobileSize = width < 768;
       setIsMobile(isMobileSize);
 
@@ -63,10 +64,11 @@ export default function WeddingInvitation() {
       const BOOK_H = 550;
 
       if (isMobileSize) {
-        const availableW = width - 20;
-        const availableH = height - 175; // header + nav + safe padding
+        // Compact chrome: header ~56px + footer ~80px + padding
+        const availableW = Math.max(width - 16, 280);
+        const availableH = Math.max(height - 150, 300);
         const nextScale = Math.min(availableW / PAGE_W, availableH / BOOK_H);
-        setScale(Math.min(Math.max(nextScale, 0.72), 1.08));
+        setScale(Math.min(Math.max(nextScale, 0.55), 1.15));
       } else if (width < 900) {
         setScale(Math.max(0.55, (width - 32) / BOOK_W));
       } else {
@@ -74,8 +76,12 @@ export default function WeddingInvitation() {
       }
     };
     window.addEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener('resize', handleResize);
     handleResize();
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   // Initialize Audio
@@ -179,9 +185,34 @@ export default function WeddingInvitation() {
   };
 
   // Center the active page in the viewport (mobile shows one page; desktop centers the cover/spread).
-  const bookTranslateX = isMobile
-    ? (activePage % 2 === 0 ? 'translateX(-25%)' : 'translateX(25%)')
-    : (currentSpread === 0 ? 'translateX(-25%)' : 'translateX(0)');
+  // Use px so percentage transforms never fight CSS animations.
+  const bookPanX = isMobile
+    ? (activePage % 2 === 0 ? -212.5 : 212.5)
+    : (currentSpread === 0 ? -212.5 : 0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('input, textarea, button, a, iframe, form')) {
+      touchStartX.current = null;
+      return;
+    }
+    touchStartX.current = e.touches[0]?.clientX ?? null;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('input, textarea, button, a, iframe, form')) {
+      touchStartX.current = null;
+      return;
+    }
+    const endX = e.changedTouches[0]?.clientX ?? touchStartX.current;
+    const deltaX = endX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(deltaX) < 48) return;
+    if (deltaX < 0) nextPage();
+    else prevPage();
+  };
 
   // RSVP Form submission handler
   const handleRsvpSubmit = (e: React.FormEvent) => {
@@ -238,13 +269,13 @@ export default function WeddingInvitation() {
 
   const renderCover = (isMobileView: boolean = false) => (
     <div
-      className={`book-page-side book-page-front cover-page border-r border-[#D4AF37]/40 ${isMobileView ? 'rounded-xl h-full' : 'rounded-r-xl h-full'} flex flex-col justify-between ${isMobileView ? 'p-6' : 'p-8'} text-center relative w-full`}
+      className={`book-page-side book-page-front cover-page border-r border-[#D4AF37]/40 ${isMobileView ? 'rounded-xl h-full' : 'rounded-r-xl h-full'} flex flex-col justify-between ${isMobileView ? 'p-5' : 'p-8'} text-center relative w-full`}
       id="page-1-front"
-      style={{ left: -2, top: 1 }}
+      style={isMobileView ? undefined : { left: -2, top: 1 }}
     >
       {/* Gold frames */}
-      <div className="absolute inset-4 border border-[#D4AF37]/30 rounded-lg pointer-events-none"></div>
-      <div className="absolute inset-5 border border-[#D4AF37]/10 rounded-md pointer-events-none"></div>
+      <div className={`absolute ${isMobileView ? 'inset-3' : 'inset-4'} border border-[#D4AF37]/30 rounded-lg pointer-events-none`}></div>
+      <div className={`absolute ${isMobileView ? 'inset-4' : 'inset-5'} border border-[#D4AF37]/10 rounded-md pointer-events-none`}></div>
       
       {/* Corner Ornaments */}
       <div className="ornament-corner ornament-tl" style={{ borderColor: '#D4AF37' }}></div>
@@ -252,36 +283,36 @@ export default function WeddingInvitation() {
       <div className="ornament-corner ornament-bl" style={{ borderColor: '#D4AF37' }}></div>
       <div className="ornament-corner ornament-br" style={{ borderColor: '#D4AF37' }}></div>
 
-      <div className={`mt-4 flex flex-col items-center`}>
+      <div className={`mt-2 flex flex-col items-center`}>
         <div className={`w-14 h-14 rounded-full border border-[#D4AF37]/50 flex items-center justify-center ${isMobileView ? 'mb-2' : 'mb-4'} bg-[#D4AF37]/5 shadow-[0_0_20px_rgba(212,175,55,0.05)]`}>
           <span className="font-display text-2xl font-bold text-gold-gradient tracking-widest pl-1">HM</span>
         </div>
-        <p className="font-display tracking-[0.3em] text-[10px] text-[#D4AF37] font-semibold uppercase mb-2">
+        <p className={`font-display tracking-[0.3em] ${isMobileView ? 'text-[11px]' : 'text-[10px]'} text-[#D4AF37] font-semibold uppercase mb-2`}>
           Taklifnoma
         </p>
         
         {/* Divider */}
-        <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/60 to-transparent mb-4"></div>
+        <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/60 to-transparent mb-3"></div>
       </div>
 
       <div className="my-auto px-2">
-        <h1 className={`${isMobileView ? 'text-3xl' : 'text-4xl'} font-semibold text-gold-gradient tracking-wide mb-2 leading-tight`}>
+        <h1 className={`${isMobileView ? 'text-[2rem]' : 'text-4xl'} font-semibold text-gold-gradient tracking-wide mb-2 leading-tight`}>
           Hamidullo
         </h1>
-        <p className="font-serif text-lg italic text-[#D4AF37]/70 my-1">&amp;</p>
-        <h1 className={`${isMobileView ? 'text-3xl' : 'text-4xl'} font-semibold text-gold-gradient tracking-wide mt-2 leading-tight`}>
+        <p className={`font-serif ${isMobileView ? 'text-xl' : 'text-lg'} italic text-[#D4AF37]/70 my-1`}>&amp;</p>
+        <h1 className={`${isMobileView ? 'text-[2rem]' : 'text-4xl'} font-semibold text-gold-gradient tracking-wide mt-2 leading-tight`}>
           Muborakxon
         </h1>
       </div>
 
-      <div className="mb-4 flex flex-col items-center gap-2 z-10">
-        <p className="font-serif text-[10px] tracking-wider text-amber-200/50">
+      <div className="mb-3 flex flex-col items-center gap-2 z-10">
+        <p className={`font-serif ${isMobileView ? 'text-[11px]' : 'text-[10px]'} tracking-wider text-amber-200/50`}>
           Nikoh marosimi taklifnomasi
         </p>
         <button 
           id="open-invite-btn"
           onClick={(e) => { e.stopPropagation(); nextPage(); }}
-          className="group relative flex items-center gap-2 bg-[#D4AF37] hover:bg-[#FDFBF7] text-black font-bold border-2 border-[#D4AF37] hover:text-[#D4AF37] shadow-[0_4px_15px_rgba(212,175,55,0.4)] hover:shadow-[0_4px_25px_rgba(212,175,55,0.6)] px-5 py-2 rounded-full text-[11px] font-display tracking-widest transition-all duration-300 hover:scale-105 active:scale-95"
+          className={`group relative flex items-center gap-2 bg-[#D4AF37] hover:bg-[#FDFBF7] text-black font-bold border-2 border-[#D4AF37] hover:text-[#D4AF37] shadow-[0_4px_15px_rgba(212,175,55,0.4)] hover:shadow-[0_4px_25px_rgba(212,175,55,0.6)] ${isMobileView ? 'px-5 py-2.5 text-[12px]' : 'px-5 py-2 text-[11px]'} rounded-full font-display tracking-widest transition-all duration-300 hover:scale-105 active:scale-95`}
         >
           <BookOpen size={12} className="text-black group-hover:text-[#D4AF37] group-hover:rotate-12 transition-transform duration-300" />
           TAKLIFNOMANI OCHISH
@@ -292,72 +323,72 @@ export default function WeddingInvitation() {
   );
 
   const renderQuote = (isMobileView: boolean = false) => (
-    <div className={`book-page-side book-page-back paper-page ${isMobileView ? 'rounded-xl h-full' : 'rounded-l-xl h-full'} flex flex-col justify-between ${isMobileView ? 'p-6' : 'p-8'} text-center relative w-full`} id="page-1-back">
+    <div className={`book-page-side book-page-back paper-page ${isMobileView ? 'rounded-xl h-full p-5' : 'rounded-l-xl h-full p-8'} flex flex-col justify-between text-center relative w-full`} id="page-1-back">
       {/* Book depth shadow */}
       {!isMobileView && <div className="absolute inset-y-0 left-0 w-16 inner-shadow-left pointer-events-none opacity-20"></div>}
       
       {/* Gold frames */}
-      <div className="absolute inset-4 border border-[#D4AF37]/15 rounded-lg pointer-events-none"></div>
+      <div className={`absolute ${isMobileView ? 'inset-3' : 'inset-4'} border border-[#D4AF37]/15 rounded-lg pointer-events-none`}></div>
 
-      <div className="mt-4 flex justify-center">
+      <div className="mt-3 flex justify-center">
         <Heart size={18} className="text-[#D4AF37]/60 fill-[#D4AF37]/5" />
       </div>
 
-      <div className="my-auto px-4 flex flex-col gap-4">
-        <p className="font-serif text-gray-800 text-[12px] leading-relaxed italic">
+      <div className="my-auto px-3 flex flex-col gap-4">
+        <p className={`font-serif text-gray-800 ${isMobileView ? 'text-[13px]' : 'text-[12px]'} leading-relaxed italic`}>
           &ldquo;Yaratgan zot sizlar sukunat topishingiz uchun o&apos;zlaringizdan juftlaringizni yaratdi va oralaringizda sevgi hamda mehr-shafqat uyg&apos;otdi.&rdquo;
         </p>
         <div className="flex items-center justify-center gap-2">
           <span className="h-[1px] w-4 bg-[#D4AF37]/30"></span>
-          <span className="font-display text-[9px] tracking-[0.15em] text-[#D4AF37] font-semibold uppercase">Rum surasi, 21</span>
+          <span className={`font-display ${isMobileView ? 'text-[10px]' : 'text-[9px]'} tracking-[0.15em] text-[#D4AF37] font-semibold uppercase`}>Rum surasi, 21</span>
           <span className="h-[1px] w-4 bg-[#D4AF37]/30"></span>
         </div>
         
-        <p className="font-serif text-[11px] leading-relaxed text-gray-600 mt-2 px-1">
+        <p className={`font-serif ${isMobileView ? 'text-[12px]' : 'text-[11px]'} leading-relaxed text-gray-600 mt-2 px-1`}>
           Ikki qalbning go&apos;zal rishtalar bilan bog&apos;lanayotgan ushbu baxt ostonasida, biz uchun eng qadrli bo&apos;lgan siz aziz insonni davramizda ko&apos;rishni istaymiz.
         </p>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-3">
         <span className="font-display text-[9px] tracking-widest text-[#D4AF37]/60 font-semibold">H &amp; M</span>
       </div>
     </div>
   );
 
   const renderInvitation = (isMobileView: boolean = false) => (
-    <div className={`book-page-side book-page-front paper-page ${isMobileView ? 'rounded-xl h-full' : 'rounded-r-xl h-full'} flex flex-col justify-between ${isMobileView ? 'p-6' : 'p-8'} text-center relative w-full`} id="page-2-front">
+    <div className={`book-page-side book-page-front paper-page ${isMobileView ? 'rounded-xl h-full p-5' : 'rounded-r-xl h-full p-8'} flex flex-col justify-between text-center relative w-full`} id="page-2-front">
       {/* Book depth shadow */}
       {!isMobileView && <div className="absolute inset-y-0 right-0 w-16 inner-shadow-right pointer-events-none opacity-20"></div>}
 
       {/* Gold frames */}
-      <div className="absolute inset-4 border border-[#D4AF37]/15 rounded-lg pointer-events-none"></div>
+      <div className={`absolute ${isMobileView ? 'inset-3' : 'inset-4'} border border-[#D4AF37]/15 rounded-lg pointer-events-none`}></div>
 
-      <div className="mt-4">
-        <span className="font-display text-[9px] tracking-[0.2em] text-[#D4AF37] uppercase border border-[#D4AF37]/30 px-2.5 py-0.5 rounded-full bg-[#D4AF37]/5 font-semibold">
+      <div className="mt-3">
+        <span className={`font-display ${isMobileView ? 'text-[10px]' : 'text-[9px]'} tracking-[0.2em] text-[#D4AF37] uppercase border border-[#D4AF37]/30 px-2.5 py-0.5 rounded-full bg-[#D4AF37]/5 font-semibold`}>
           Taklifnoma
         </span>
       </div>
 
-      <div className="my-auto px-2 flex flex-col gap-4">
-        <h3 className="font-serif text-gray-800 text-[13px] font-bold tracking-wide">
+      <div className={`my-auto px-2 flex flex-col ${isMobileView ? 'gap-3' : 'gap-4'}`}>
+        <h3 className={`font-serif text-gray-800 ${isMobileView ? 'text-[14px]' : 'text-[13px]'} font-bold tracking-wide`}>
           Hurmatli va aziz mehmonimiz!
         </h3>
-        <p className="font-serif text-gray-600 text-[11px] leading-relaxed">
+        <p className={`font-serif text-gray-600 ${isMobileView ? 'text-[12px]' : 'text-[11px]'} leading-relaxed`}>
           Sizni farzandlarimiz quvonchli kunining go&apos;zal xotirasi munosabati bilan yoziladigan to&apos;y dasturxonimizda va baxt marosimida qadrli mehmonimiz bo&apos;lishga lutfan taklif etamiz.
         </p>
         
         <div className="flex flex-col gap-1 items-center justify-center my-1">
-          <span className="font-display text-[9px] tracking-widest text-[#D4AF37] font-bold">Kelin &amp; Kuyov:</span>
-          <span className="font-display text-lg text-gray-950 tracking-wide font-bold">Hamidullo &amp; Muborakxon</span>
+          <span className={`font-display ${isMobileView ? 'text-[10px]' : 'text-[9px]'} tracking-widest text-[#D4AF37] font-bold`}>Kelin &amp; Kuyov:</span>
+          <span className={`font-display ${isMobileView ? 'text-xl' : 'text-lg'} text-gray-950 tracking-wide font-bold`}>Hamidullo &amp; Muborakxon</span>
         </div>
 
-        <p className="font-serif text-[10px] leading-relaxed text-gray-500">
+        <p className={`font-serif ${isMobileView ? 'text-[11px]' : 'text-[10px]'} leading-relaxed text-gray-500`}>
           Sizning tashrifingiz oilamiz uchun cheksiz quvonch va faxr ulashadi.
         </p>
       </div>
 
-      <div className="mb-4">
-        <p className="font-serif text-[9px] text-[#D4AF37] font-semibold tracking-wider">
+      <div className="mb-3">
+        <p className={`font-serif ${isMobileView ? 'text-[10px]' : 'text-[9px]'} text-[#D4AF37] font-semibold tracking-wider`}>
           Hurmat bilan: Ota-onalar.
         </p>
       </div>
@@ -365,59 +396,59 @@ export default function WeddingInvitation() {
   );
 
   const renderDetails = (isMobileView: boolean = false) => (
-    <div className={`book-page-side book-page-back paper-page ${isMobileView ? 'rounded-xl h-full' : 'rounded-l-xl h-full'} flex flex-col justify-between ${isMobileView ? 'p-6' : 'p-8'} text-center relative w-full`} id="page-2-back">
+    <div className={`book-page-side book-page-back paper-page ${isMobileView ? 'rounded-xl h-full p-5' : 'rounded-l-xl h-full p-8'} flex flex-col justify-between text-center relative w-full`} id="page-2-back">
       {/* Book depth shadow */}
       {!isMobileView && <div className="absolute inset-y-0 left-0 w-16 inner-shadow-left pointer-events-none opacity-20"></div>}
 
       {/* Gold frames */}
-      <div className="absolute inset-4 border border-[#D4AF37]/15 rounded-lg pointer-events-none"></div>
+      <div className={`absolute ${isMobileView ? 'inset-3' : 'inset-4'} border border-[#D4AF37]/15 rounded-lg pointer-events-none`}></div>
 
-      <div className="mt-4">
-        <h4 className="font-display tracking-[0.2em] text-[9px] font-bold text-[#D4AF37] uppercase">
+      <div className="mt-3">
+        <h4 className={`font-display tracking-[0.2em] ${isMobileView ? 'text-[10px]' : 'text-[9px]'} font-bold text-[#D4AF37] uppercase`}>
           Tadbir Tafsilotlari
         </h4>
         <div className="w-8 h-[1px] bg-[#D4AF37]/30 mx-auto mt-1"></div>
       </div>
 
-      <div className="my-auto flex flex-col gap-4 px-2">
+      <div className={`my-auto flex flex-col ${isMobileView ? 'gap-3' : 'gap-4'} px-2`}>
         {/* Date Grid */}
         <div className="grid grid-cols-2 gap-2" id="details-grid">
-          <div className="flex items-center gap-2 bg-[#D4AF37]/5 border border-[#D4AF37]/25 rounded-xl p-2.5 text-left">
+          <div className={`flex items-center gap-2 bg-[#D4AF37]/5 border border-[#D4AF37]/25 rounded-xl ${isMobileView ? 'p-3' : 'p-2.5'} text-left`}>
             <div className="p-1.5 rounded-lg bg-[#D4AF37]/10 text-[#D4AF37] flex items-center justify-center flex-shrink-0">
               <Calendar size={13} />
             </div>
             <div className="min-w-0">
               <p className="text-[8px] font-mono tracking-wider text-gray-400 uppercase">Sana</p>
-              <p className="text-[11px] font-serif text-gray-800 font-bold truncate">13-Avgust, 2026</p>
+              <p className={`${isMobileView ? 'text-[12px]' : 'text-[11px]'} font-serif text-gray-800 font-bold truncate`}>13-Avgust, 2026</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#D4AF37]/5 border border-[#D4AF37]/25 rounded-xl p-2.5 text-left">
+          <div className={`flex items-center gap-2 bg-[#D4AF37]/5 border border-[#D4AF37]/25 rounded-xl ${isMobileView ? 'p-3' : 'p-2.5'} text-left`}>
             <div className="p-1.5 rounded-lg bg-[#D4AF37]/10 text-[#D4AF37] flex items-center justify-center flex-shrink-0">
               <Clock size={13} />
             </div>
             <div className="min-w-0">
               <p className="text-[8px] font-mono tracking-wider text-gray-400 uppercase">Vaqt</p>
-              <p className="text-[11px] font-serif text-gray-800 font-bold">18:00</p>
+              <p className={`${isMobileView ? 'text-[12px]' : 'text-[11px]'} font-serif text-gray-800 font-bold`}>18:00</p>
             </div>
           </div>
         </div>
 
         {/* Hall Info */}
-        <div className="flex items-start gap-2 bg-[#D4AF37]/5 border border-[#D4AF37]/25 rounded-xl p-2.5 text-left">
+        <div className={`flex items-start gap-2 bg-[#D4AF37]/5 border border-[#D4AF37]/25 rounded-xl ${isMobileView ? 'p-3' : 'p-2.5'} text-left`}>
           <div className="p-1.5 rounded-lg bg-[#D4AF37]/10 text-[#D4AF37] flex items-center justify-center mt-0.5 flex-shrink-0">
             <MapPin size={13} />
           </div>
           <div>
             <p className="text-[8px] font-mono tracking-wider text-gray-400 uppercase">Manzil</p>
-            <p className="text-[11px] font-serif text-gray-800 font-bold mb-0.5">&ldquo;Sherdor&rdquo; To&apos;yxonasi</p>
-            <p className="text-[9px] font-serif text-gray-600">Yangiyo&apos;l shahar, Toshkent viloyati</p>
+            <p className={`${isMobileView ? 'text-[12px]' : 'text-[11px]'} font-serif text-gray-800 font-bold mb-0.5`}>&ldquo;Sherdor&rdquo; To&apos;yxonasi</p>
+            <p className={`${isMobileView ? 'text-[10px]' : 'text-[9px]'} font-serif text-gray-600`}>Yangiyo&apos;l shahar, Toshkent viloyati</p>
           </div>
         </div>
 
         {/* Countdown Timer */}
         <div className="flex flex-col gap-1.5" id="countdown-wrapper">
-          <p className="text-[9px] font-display tracking-widest text-[#D4AF37] font-bold uppercase">
+          <p className={`${isMobileView ? 'text-[10px]' : 'text-[9px]'} font-display tracking-widest text-[#D4AF37] font-bold uppercase`}>
             Tantana boshlanishiga qoldi:
           </p>
           
@@ -427,20 +458,20 @@ export default function WeddingInvitation() {
             </div>
           ) : (
             <div className="grid grid-cols-4 gap-1.5 text-center" id="countdown-grid">
-              <div className="bg-white border border-[#D4AF37]/20 rounded-lg py-1.5 shadow-sm">
-                <span className="block text-[13px] font-bold text-gray-800 font-mono leading-none">{timeLeft.days}</span>
+              <div className={`bg-white border border-[#D4AF37]/20 rounded-lg ${isMobileView ? 'py-2' : 'py-1.5'} shadow-sm`}>
+                <span className={`block ${isMobileView ? 'text-[15px]' : 'text-[13px]'} font-bold text-gray-800 font-mono leading-none`}>{timeLeft.days}</span>
                 <span className="text-[7px] tracking-wider text-gray-400 uppercase font-medium mt-0.5 block">Kun</span>
               </div>
-              <div className="bg-white border border-[#D4AF37]/20 rounded-lg py-1.5 shadow-sm">
-                <span className="block text-[13px] font-bold text-gray-800 font-mono leading-none">{timeLeft.hours}</span>
+              <div className={`bg-white border border-[#D4AF37]/20 rounded-lg ${isMobileView ? 'py-2' : 'py-1.5'} shadow-sm`}>
+                <span className={`block ${isMobileView ? 'text-[15px]' : 'text-[13px]'} font-bold text-gray-800 font-mono leading-none`}>{timeLeft.hours}</span>
                 <span className="text-[7px] tracking-wider text-gray-400 uppercase font-medium mt-0.5 block">Soat</span>
               </div>
-              <div className="bg-white border border-[#D4AF37]/20 rounded-lg py-1.5 shadow-sm">
-                <span className="block text-[13px] font-bold text-gray-800 font-mono leading-none">{timeLeft.minutes}</span>
+              <div className={`bg-white border border-[#D4AF37]/20 rounded-lg ${isMobileView ? 'py-2' : 'py-1.5'} shadow-sm`}>
+                <span className={`block ${isMobileView ? 'text-[15px]' : 'text-[13px]'} font-bold text-gray-800 font-mono leading-none`}>{timeLeft.minutes}</span>
                 <span className="text-[7px] tracking-wider text-gray-400 uppercase font-medium mt-0.5 block">Daqiqa</span>
               </div>
-              <div className="bg-white border border-[#D4AF37]/20 rounded-lg py-1.5 shadow-sm">
-                <span className="block text-[13px] font-bold text-gray-800 font-mono leading-none">{timeLeft.seconds}</span>
+              <div className={`bg-white border border-[#D4AF37]/20 rounded-lg ${isMobileView ? 'py-2' : 'py-1.5'} shadow-sm`}>
+                <span className={`block ${isMobileView ? 'text-[15px]' : 'text-[13px]'} font-bold text-gray-800 font-mono leading-none`}>{timeLeft.seconds}</span>
                 <span className="text-[7px] tracking-wider text-gray-400 uppercase font-medium mt-0.5 block">Soniya</span>
               </div>
             </div>
@@ -448,30 +479,30 @@ export default function WeddingInvitation() {
         </div>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-3">
         <span className="font-display text-[8px] tracking-widest text-[#D4AF37]/50 font-semibold">13.08.2026</span>
       </div>
     </div>
   );
 
   const renderMap = (isMobileView: boolean = false) => (
-    <div className={`book-page-side book-page-front paper-page ${isMobileView ? 'rounded-xl h-full' : 'rounded-r-xl h-full'} flex flex-col justify-between ${isMobileView ? 'p-6' : 'p-8'} text-center relative w-full`} id="page-3-front">
+    <div className={`book-page-side book-page-front paper-page ${isMobileView ? 'rounded-xl h-full p-5' : 'rounded-r-xl h-full p-8'} flex flex-col justify-between text-center relative w-full`} id="page-3-front">
       {/* Book depth shadow */}
       {!isMobileView && <div className="absolute inset-y-0 right-0 w-16 inner-shadow-right pointer-events-none opacity-20"></div>}
 
       {/* Gold frames */}
-      <div className="absolute inset-4 border border-[#D4AF37]/15 rounded-lg pointer-events-none"></div>
+      <div className={`absolute ${isMobileView ? 'inset-3' : 'inset-4'} border border-[#D4AF37]/15 rounded-lg pointer-events-none`}></div>
 
-      <div className="mt-4 flex items-center justify-center gap-1.5">
+      <div className="mt-3 flex items-center justify-center gap-1.5">
         <Map size={12} className="text-[#D4AF37]" />
-        <span className="font-display text-[9px] tracking-[0.2em] text-[#D4AF37] font-bold uppercase">
+        <span className={`font-display ${isMobileView ? 'text-[10px]' : 'text-[9px]'} tracking-[0.2em] text-[#D4AF37] font-bold uppercase`}>
           Xarita va Lokatsiya
         </span>
       </div>
 
       {/* Glassmorphism Map Wrapper */}
       <div className="my-auto mx-1 flex flex-col gap-3">
-        <div className={`relative w-full ${isMobileView ? 'h-[160px]' : 'h-[220px]'} rounded-xl overflow-hidden border border-[#D4AF37]/25 shadow-md bg-slate-950`} id="map-iframe-container">
+        <div className={`relative w-full ${isMobileView ? 'h-[180px]' : 'h-[220px]'} rounded-xl overflow-hidden border border-[#D4AF37]/25 shadow-md bg-slate-950`} id="map-iframe-container">
           <iframe 
             id="google-maps-frame"
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2998.5!2d69.0770747!3d41.1257616!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38ae7b3ce8d9151b%3A0x9f69fc522a1ca23e!2sSherdor%20To%27yxonasi!5e0!3m2!1suz!2suz!4v1721130000000!5m2!1suz!2suz" 
@@ -491,29 +522,29 @@ export default function WeddingInvitation() {
         <button 
           id="maps-navigation-btn"
           onClick={(e) => { e.stopPropagation(); openMap(); }}
-          className="flex items-center justify-center gap-1.5 mx-auto px-4 py-1.5 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/25 border border-[#D4AF37]/40 hover:border-[#D4AF37] rounded-full text-[10px] font-bold tracking-widest text-[#D4AF37] transition-all duration-300 hover:scale-[1.03] active:scale-95"
+          className={`flex items-center justify-center gap-1.5 mx-auto px-5 ${isMobileView ? 'py-2.5 text-[11px]' : 'py-1.5 text-[10px]'} bg-[#D4AF37]/10 hover:bg-[#D4AF37]/25 border border-[#D4AF37]/40 hover:border-[#D4AF37] rounded-full font-bold tracking-widest text-[#D4AF37] transition-all duration-300 hover:scale-[1.03] active:scale-95`}
         >
           <Navigation size={10} className="text-[#D4AF37] animate-[pulse_1.5s_infinite]" />
           XARITADA KO&apos;RISH
         </button>
       </div>
 
-      <div className="mb-4">
-        <p className="font-serif text-[9px] text-gray-500">Yangiyo&apos;l shahar, Sherdor to&apos;yxonasi</p>
+      <div className="mb-3">
+        <p className={`font-serif ${isMobileView ? 'text-[10px]' : 'text-[9px]'} text-gray-500`}>Yangiyo&apos;l shahar, Sherdor to&apos;yxonasi</p>
       </div>
     </div>
   );
 
   const renderRsvp = (isMobileView: boolean = false) => (
-    <div className={`book-page-side book-page-back paper-page ${isMobileView ? 'rounded-xl h-full' : 'rounded-l-xl h-full'} flex flex-col justify-between ${isMobileView ? 'p-6' : 'p-8'} text-center relative w-full`} id="page-3-back">
+    <div className={`book-page-side book-page-back paper-page ${isMobileView ? 'rounded-xl h-full p-5' : 'rounded-l-xl h-full p-8'} flex flex-col justify-between text-center relative w-full`} id="page-3-back">
       {/* Book depth shadow */}
       {!isMobileView && <div className="absolute inset-y-0 left-0 w-16 inner-shadow-left pointer-events-none opacity-20"></div>}
 
       {/* Gold frames */}
-      <div className="absolute inset-4 border border-[#D4AF37]/15 rounded-lg pointer-events-none"></div>
+      <div className={`absolute ${isMobileView ? 'inset-3' : 'inset-4'} border border-[#D4AF37]/15 rounded-lg pointer-events-none`}></div>
 
-      <div className="mt-4 flex flex-col items-center">
-        <span className="font-display text-[9px] tracking-[0.2em] text-[#D4AF37] font-bold uppercase">
+      <div className="mt-3 flex flex-col items-center">
+        <span className={`font-display ${isMobileView ? 'text-[10px]' : 'text-[9px]'} tracking-[0.2em] text-[#D4AF37] font-bold uppercase`}>
           Tashrifni Tasdiqlash
         </span>
         <div className="w-8 h-[1px] bg-[#D4AF37]/30 mt-1.5"></div>
@@ -525,10 +556,10 @@ export default function WeddingInvitation() {
             <div className="w-10 h-10 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/40 flex items-center justify-center mb-2.5 text-[#D4AF37] animate-[bounce_1s_ease-out_infinite_alternate]">
               <Check size={18} />
             </div>
-            <h4 className="font-serif text-[13px] font-bold text-gray-800 mb-1">
+            <h4 className={`font-serif ${isMobileView ? 'text-[14px]' : 'text-[13px]'} font-bold text-gray-800 mb-1`}>
               Javobingiz Qabul Qilindi!
             </h4>
-            <p className="font-serif text-[10px] leading-relaxed text-gray-600 px-1">
+            <p className={`font-serif ${isMobileView ? 'text-[11px]' : 'text-[10px]'} leading-relaxed text-gray-600 px-1`}>
               {isAttending 
                 ? `Tashrifingiz uchun minnatdormiz, ${guestName}! Sizni to'yimizda ko'rishdan behad baxtiyormiz. ❤️` 
                 : `Rahmat, ${guestName}. Biz uchun bildirilgan e'tiboringiz cheksiz qadrlidir. ✨`
@@ -536,10 +567,10 @@ export default function WeddingInvitation() {
             </p>
           </div>
         ) : (
-          <form id="rsvp-form" onSubmit={handleRsvpSubmit} className="flex flex-col gap-3.5 text-left">
+          <form id="rsvp-form" onSubmit={handleRsvpSubmit} className={`flex flex-col ${isMobileView ? 'gap-4' : 'gap-3.5'} text-left`}>
             {/* Name input */}
             <div className="flex flex-col gap-1">
-              <label htmlFor="guest-name-input" className="text-[9px] font-display tracking-widest text-[#D4AF37] uppercase font-bold">Ismingiz</label>
+              <label htmlFor="guest-name-input" className={`${isMobileView ? 'text-[10px]' : 'text-[9px]'} font-display tracking-widest text-[#D4AF37] uppercase font-bold`}>Ismingiz</label>
               <div className="relative">
                 <input 
                   id="guest-name-input"
@@ -547,7 +578,7 @@ export default function WeddingInvitation() {
                   placeholder="Iltimos, ismingizni kiriting..."
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
-                  className="w-full bg-transparent text-gray-800 text-[11px] border-b border-[#D4AF37]/40 focus:border-[#D4AF37] rounded-none py-2 pl-8 pr-3 outline-none transition-all duration-300"
+                  className={`w-full bg-transparent text-gray-800 ${isMobileView ? 'text-[13px] py-2.5' : 'text-[11px] py-2'} border-b border-[#D4AF37]/40 focus:border-[#D4AF37] rounded-none pl-8 pr-3 outline-none transition-all duration-300`}
                 />
                 <User size={12} className="absolute left-2.5 top-2.5 text-[#D4AF37]/50" />
               </div>
@@ -555,13 +586,13 @@ export default function WeddingInvitation() {
 
             {/* Attending options */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[9px] font-display tracking-widest text-[#D4AF37] uppercase font-bold">Tashrif buyurasizmi?</span>
+              <span className={`${isMobileView ? 'text-[10px]' : 'text-[9px]'} font-display tracking-widest text-[#D4AF37] uppercase font-bold`}>Tashrif buyurasizmi?</span>
               <div className="grid grid-cols-2 gap-2" id="rsvp-buttons">
                 <button
                   id="rsvp-attend-btn"
                   type="button"
                   onClick={() => setIsAttending(true)}
-                  className={`py-1.5 px-2 text-[10px] rounded-lg border font-bold text-center transition-all duration-300 ${
+                  className={`${isMobileView ? 'py-2.5 text-[11px]' : 'py-1.5 text-[10px]'} px-2 rounded-lg border font-bold text-center transition-all duration-300 ${
                     isAttending === true 
                       ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-gray-950 shadow-sm' 
                       : 'bg-transparent border-gray-300 text-gray-500 hover:bg-gray-100'
@@ -573,7 +604,7 @@ export default function WeddingInvitation() {
                   id="rsvp-decline-btn"
                   type="button"
                   onClick={() => setIsAttending(false)}
-                  className={`py-1.5 px-2 text-[10px] rounded-lg border font-bold text-center transition-all duration-300 ${
+                  className={`${isMobileView ? 'py-2.5 text-[11px]' : 'py-1.5 text-[10px]'} px-2 rounded-lg border font-bold text-center transition-all duration-300 ${
                     isAttending === false 
                       ? 'bg-red-50 border-red-300 text-red-700 shadow-sm' 
                       : 'bg-transparent border-gray-300 text-gray-500 hover:bg-gray-100'
@@ -591,7 +622,7 @@ export default function WeddingInvitation() {
             <button 
               id="rsvp-submit-btn"
               type="submit"
-              className="w-full mt-1.5 py-2 bg-gray-900 hover:bg-black border border-gray-900 text-[#D4AF37] font-display font-bold tracking-widest text-[10px] rounded-lg transition-all duration-300 shadow-[0_4px_10px_rgba(0,0,0,0.15)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.3)]"
+              className={`w-full mt-1.5 ${isMobileView ? 'py-2.5 text-[11px]' : 'py-2 text-[10px]'} bg-gray-900 hover:bg-black border border-gray-900 text-[#D4AF37] font-display font-bold tracking-widest rounded-lg transition-all duration-300 shadow-[0_4px_10px_rgba(0,0,0,0.15)] hover:shadow-[0_4px_15px_rgba(0,0,0,0.3)]`}
             >
               YUBORISH
             </button>
@@ -599,16 +630,16 @@ export default function WeddingInvitation() {
         )}
       </div>
 
-      <div className="mb-4">
+      <div className="mb-3">
         <span className="font-display text-[8px] tracking-widest text-[#D4AF37]/50 font-semibold">H &amp; M</span>
       </div>
     </div>
   );
 
   const renderThankYou = (isMobileView: boolean = false) => (
-    <div className={`book-page-side book-page-front paper-page ${isMobileView ? 'rounded-xl h-full' : 'rounded-r-xl h-full'} flex flex-col justify-between ${isMobileView ? 'p-6' : 'p-8'} text-center relative w-full`} id="page-4-front">
+    <div className={`book-page-side book-page-front paper-page ${isMobileView ? 'rounded-xl h-full p-5' : 'rounded-r-xl h-full p-8'} flex flex-col justify-between text-center relative w-full`} id="page-4-front">
       {/* Gold frames */}
-      <div className="absolute inset-4 border border-[#D4AF37]/15 rounded-lg pointer-events-none"></div>
+      <div className={`absolute ${isMobileView ? 'inset-3' : 'inset-4'} border border-[#D4AF37]/15 rounded-lg pointer-events-none`}></div>
       
       {/* Corner Ornaments */}
       <div className="ornament-corner ornament-tl" style={{ borderColor: '#D4AF37' }}></div>
@@ -616,32 +647,32 @@ export default function WeddingInvitation() {
       <div className="ornament-corner ornament-bl" style={{ borderColor: '#D4AF37' }}></div>
       <div className="ornament-corner ornament-br" style={{ borderColor: '#D4AF37' }}></div>
 
-      <div className="mt-4 flex justify-center">
+      <div className="mt-3 flex justify-center">
         <Heart size={18} className="text-[#D4AF37]/60 fill-[#D4AF37]/5" />
       </div>
 
-      <div className="my-auto px-2 flex flex-col gap-4">
-        <p className="font-display text-[11px] font-bold text-gold-gradient tracking-[0.2em] uppercase">
+      <div className={`my-auto px-2 flex flex-col ${isMobileView ? 'gap-3' : 'gap-4'}`}>
+        <p className={`font-display ${isMobileView ? 'text-[12px]' : 'text-[11px]'} font-bold text-gold-gradient tracking-[0.2em] uppercase`}>
           Tashrifingiz uchun rahmat!
         </p>
         
         {/* Styled Ornament Interlocking hearts */}
         <div className="flex items-center justify-center gap-2 my-1">
           <span className="h-[1px] w-6 bg-[#D4AF37]/30"></span>
-          <span className="font-display text-[12px] font-bold text-gray-800 tracking-widest">H &amp; M</span>
+          <span className={`font-display ${isMobileView ? 'text-[13px]' : 'text-[12px]'} font-bold text-gray-800 tracking-widest`}>H &amp; M</span>
           <span className="h-[1px] w-6 bg-[#D4AF37]/30"></span>
         </div>
 
-        <p className="font-serif text-[10px] leading-relaxed text-gray-600 italic px-1">
+        <p className={`font-serif ${isMobileView ? 'text-[11px]' : 'text-[10px]'} leading-relaxed text-gray-600 italic px-1`}>
           &ldquo;Baxt baham ko&apos;rilganda go&apos;zalroqdir. Quvonchli kunimizda biz bilan birga bo&apos;lishingiz biz uchun chinakam baxtdir.&rdquo;
         </p>
         
-        <p className="font-serif text-[9px] text-gray-500 font-semibold">
+        <p className={`font-serif ${isMobileView ? 'text-[10px]' : 'text-[9px]'} text-gray-500 font-semibold`}>
           Sizni hurmat bilan kutib qolamiz!
         </p>
       </div>
 
-      <div className="mb-4 flex flex-col items-center">
+      <div className="mb-3 flex flex-col items-center">
         {/* Golden seal graphic simulation */}
         <div className="w-8 h-8 rounded-full border border-[#D4AF37]/40 flex items-center justify-center bg-gradient-to-br from-[#D4AF37]/10 to-amber-900/10 shadow-sm">
           <Sparkles size={12} className="text-[#D4AF37]" />
@@ -651,7 +682,7 @@ export default function WeddingInvitation() {
   );
 
   return (
-    <main id="main-content" className="invitation-stage relative flex flex-col items-center justify-between min-h-dvh py-3 px-2 sm:py-6 sm:px-4 md:py-10 select-none overflow-hidden font-sans">
+    <main id="main-content" className="invitation-stage relative flex flex-col items-center justify-between min-h-dvh py-2 px-1.5 sm:py-6 sm:px-4 md:py-10 select-none overflow-hidden font-sans safe-area-pad">
       
       {/* Atmospheric wedding stage: candle washes, dust, soft rings */}
       <div className="bg-candle-wash bg-candle-wash--a" aria-hidden="true" />
@@ -659,7 +690,7 @@ export default function WeddingInvitation() {
       <div className="bg-candle-wash bg-candle-wash--c" aria-hidden="true" />
 
       <div
-        className="bg-ornament-ring pointer-events-none"
+        className="bg-ornament-ring pointer-events-none hidden sm:block"
         aria-hidden="true"
         style={{
           top: '50%',
@@ -670,7 +701,7 @@ export default function WeddingInvitation() {
         }}
       />
       <div
-        className="bg-ornament-ring pointer-events-none"
+        className="bg-ornament-ring pointer-events-none hidden sm:block"
         aria-hidden="true"
         style={{
           top: '50%',
@@ -693,7 +724,7 @@ export default function WeddingInvitation() {
       </div>
       
       {/* Music Control Indicator */}
-      <div className="fixed top-6 right-6 z-50 flex items-center gap-3 bg-slate-900/80 backdrop-blur-md border border-[#D4AF37]/30 rounded-full py-1.5 pl-3 pr-1.5 shadow-lg shadow-black/50" id="audio-panel">
+      <div className="fixed top-3 right-3 sm:top-6 sm:right-6 z-50 flex items-center gap-3 bg-slate-900/80 backdrop-blur-md border border-[#D4AF37]/30 rounded-full py-1 pl-2 pr-1 sm:py-1.5 sm:pl-3 sm:pr-1.5 shadow-lg shadow-black/50" id="audio-panel">
         <span className="text-[10px] font-mono tracking-widest text-[#D4AF37]/70 font-medium uppercase hidden sm:inline">
           {isPlaying ? "Oh sevaman yor — Ibrohim Nurmatov" : "Musiqa o'chiq"}
         </span>
@@ -712,11 +743,11 @@ export default function WeddingInvitation() {
       </div>
 
       {/* Top Header / Monogram */}
-      <header className="z-10 text-center mb-1 sm:mb-4 transition-all duration-700" id="header-section">
-        <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-[#D4AF37]/30 bg-[#0B0F19]/90 shadow-[0_0_10px_rgba(212,175,55,0.05)] mb-1 sm:mb-2" id="monogram-badge">
-          <Heart size={16} className="text-[#D4AF37]/80 fill-[#D4AF37]/10 animate-pulse-slow sm:w-[18px] sm:h-[18px]" />
+      <header className="z-10 text-center mb-0.5 sm:mb-4 transition-all duration-700" id="header-section">
+        <div className="inline-flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 rounded-full border border-[#D4AF37]/30 bg-[#0B0F19]/90 shadow-[0_0_10px_rgba(212,175,55,0.05)] mb-0.5 sm:mb-2" id="monogram-badge">
+          <Heart size={14} className="text-[#D4AF37]/80 fill-[#D4AF37]/10 animate-pulse-slow sm:w-[18px] sm:h-[18px]" />
         </div>
-        <h2 className="font-display tracking-[0.25em] text-[10px] sm:text-xs font-semibold text-amber-200/80 uppercase">
+        <h2 className="font-display tracking-[0.25em] text-[9px] sm:text-xs font-semibold text-amber-200/80 uppercase">
           Lutfan Taklif Etamiz
         </h2>
       </header>
@@ -724,12 +755,14 @@ export default function WeddingInvitation() {
       {/* BOOK PLAYGROUND SECTION */}
       <section 
         id="book-playground"
-        className="relative z-10 flex items-center justify-center flex-1 w-full my-2 sm:my-6 overflow-hidden mx-auto"
+        className="relative z-10 flex items-center justify-center flex-1 w-full my-1 sm:my-6 overflow-hidden mx-auto touch-pan-y"
         style={{
           width: `${(isMobile ? 425 : 850) * scale}px`,
           height: `${550 * scale}px`,
           maxWidth: '100%',
         }}
+        onTouchStart={isMobile ? handleTouchStart : undefined}
+        onTouchEnd={isMobile ? handleTouchEnd : undefined}
       >
         {/* Scaled book sits in a fixed viewport so one mobile page fills the screen */}
         <div 
@@ -741,16 +774,16 @@ export default function WeddingInvitation() {
             transformOrigin: 'center center',
           }}
         >
-          {/* Main Book 3D Container */}
-          <div 
-            className="book-container relative transition-all duration-700 ease-in-out origin-center animate-fade-in"
-            style={{
-              width: '850px',
-              height: '550px',
-              transform: bookTranslateX,
-            }}
-            onClick={startMusicOnInteraction}
+          {/* Pan wrapper keeps the active page centered; separate from fade animation */}
+          <div
+            className="h-full w-full transition-transform duration-700 ease-in-out"
+            style={{ transform: `translateX(${bookPanX}px)` }}
           >
+            {/* Main Book 3D Container */}
+            <div 
+              className="book-container relative h-full w-full origin-center animate-fade-in"
+              onClick={startMusicOnInteraction}
+            >
             {/* Main Book Under-Shadow sitting behind the real book */}
             <div className="absolute -inset-1 rounded-2xl bg-black/50 blur-xl translate-y-4 transition-all duration-700" id="book-drop-shadow"></div>
 
@@ -830,43 +863,49 @@ export default function WeddingInvitation() {
 
             </div>
           </div>
+          </div>
         </div>
       </section>
 
       {/* Navigation and spread indicators below the book */}
-      <footer className="z-10 flex flex-col items-center gap-2 sm:gap-4 w-full max-w-md mt-1" id="footer-section">
+      <footer className="z-10 flex flex-col items-center gap-1.5 sm:gap-4 w-full max-w-md mt-0.5 sm:mt-1 pb-[env(safe-area-inset-bottom)]" id="footer-section">
         {/* Progress Bar / Dots */}
-        <div className="flex items-center gap-3 sm:gap-4 py-1 sm:py-2 w-full justify-center" id="progress-container">
+        <div className="flex items-center gap-2 sm:gap-4 py-1 sm:py-2 w-full justify-center" id="progress-container">
           <button 
             id="prev-page-arrow"
             onClick={prevPage}
             disabled={isMobile ? activePage === 0 : currentSpread === 0}
-            className={`p-2.5 sm:p-2 rounded-full border transition-all duration-300 ${
+            className={`p-3 sm:p-2 rounded-full border transition-all duration-300 ${
               (isMobile ? activePage === 0 : currentSpread === 0)
                 ? 'border-[#D4AF37]/5 text-[#D4AF37]/10 cursor-not-allowed' 
                 : 'border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 active:scale-90 shadow-md'
             }`}
             aria-label="Oldingi sahifa"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={20} />
           </button>
 
-          {/* Spread indicator dots */}
-          <div className="flex items-center gap-2 max-w-[200px] overflow-x-auto no-scrollbar py-1" id="progress-dots">
-            {[0, 1, 2, 3].map((idx) => (
+          {/* Page dots on mobile (7), spread dots on desktop (4) */}
+          <div className="flex items-center gap-1.5 sm:gap-2 max-w-[220px] overflow-x-auto no-scrollbar py-1" id="progress-dots">
+            {(isMobile ? [0, 1, 2, 3, 4, 5, 6] : [0, 1, 2, 3]).map((idx) => (
               <button
                 key={idx}
-                id={`progress-dot-desktop-${idx}`}
+                id={`progress-dot-${isMobile ? 'mobile' : 'desktop'}-${idx}`}
                 onClick={() => {
                   startMusicOnInteraction();
-                  setActivePage(idx === 0 ? 0 : idx * 2 - 1);
+                  if (isMobile) {
+                    setActivePage(idx);
+                  } else {
+                    setActivePage(idx === 0 ? 0 : idx * 2 - 1);
+                  }
                 }}
-                className={`h-2 rounded-full transition-all duration-500 ${
-                  currentSpread === idx 
-                    ? 'w-6 bg-gradient-to-r from-[#D4AF37] to-amber-600 shadow-[0_0_8px_rgba(212,175,55,0.4)]' 
-                    : 'w-2 bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40'
+                className={`h-2.5 sm:h-2 rounded-full transition-all duration-500 ${
+                  (isMobile ? activePage === idx : currentSpread === idx)
+                    ? 'w-5 sm:w-6 bg-gradient-to-r from-[#D4AF37] to-amber-600 shadow-[0_0_8px_rgba(212,175,55,0.4)]' 
+                    : 'w-2.5 sm:w-2 bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40'
                 }`}
                 title={`Sahifa ${idx + 1}`}
+                aria-label={`Sahifa ${idx + 1}`}
               />
             ))}
           </div>
@@ -875,22 +914,27 @@ export default function WeddingInvitation() {
             id="next-page-arrow"
             onClick={nextPage}
             disabled={isMobile ? activePage === maxPage : currentSpread === totalSpreads}
-            className={`p-2.5 sm:p-2 rounded-full border transition-all duration-300 ${
+            className={`p-3 sm:p-2 rounded-full border transition-all duration-300 ${
               (isMobile ? activePage === maxPage : currentSpread === totalSpreads)
                 ? 'border-[#D4AF37]/5 text-[#D4AF37]/10 cursor-not-allowed' 
                 : 'border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 active:scale-90 shadow-md'
             }`}
             aria-label="Keyingi sahifa"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={20} />
           </button>
         </div>
 
         {/* Closing Footnote / Technical Detail */}
-        <div className="text-center mt-2" id="footnote">
-          <p className="text-[10px] font-mono tracking-[0.15em] text-[#D4AF37]/50 font-semibold">
+        <div className="text-center mt-0.5 sm:mt-2" id="footnote">
+          <p className="text-[9px] sm:text-[10px] font-mono tracking-[0.15em] text-[#D4AF37]/50 font-semibold">
             H &amp; M &bull; 13.08.2026
           </p>
+          {isMobile && (
+            <p className="text-[8px] tracking-wider text-[#D4AF37]/35 mt-0.5 uppercase">
+              Chap-o&apos;ngga suring
+            </p>
+          )}
         </div>
       </footer>
     </main>

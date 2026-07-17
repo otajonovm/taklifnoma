@@ -285,8 +285,8 @@
 }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .animate-fade-in {
@@ -310,3 +310,33 @@
 .ornament-tr { top: 12px; right: 12px; border-left: none; border-bottom: none; }
 .ornament-bl { bottom: 12px; left: 12px; border-right: none; border-top: none; }
 .ornament-br { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+
+/* Mobile layout helpers */
+.safe-area-pad {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 767px) {
+  .book-leaf {
+    transition: transform 0.85s cubic-bezier(0.645, 0.045, 0.355, 1);
+  }
+
+  .book-container {
+    perspective: 1400px;
+  }
+
+  .bg-dust span:nth-child(n + 4) {
+    display: none;
+  }
+
+  .ornament-corner {
+    width: 18px;
+    height: 18px;
+  }
+
+  .ornament-tl { top: 10px; left: 10px; }
+  .ornament-tr { top: 10px; right: 10px; }
+  .ornament-bl { bottom: 10px; left: 10px; }
+  .ornament-br { bottom: 10px; right: 10px; }
+}

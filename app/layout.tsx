@@ -1,4 +1,4 @@
-import type {Metadata} from 'next';
+import type {Metadata, Viewport} from 'next';
 import { Old_Standard_TT } from 'next/font/google';
 import './globals.css'; // Global styles
 
@@ -12,6 +12,14 @@ const oldStandardTT = Old_Standard_TT({
 export const metadata: Metadata = {
   title: 'Hamidullo & Muborakxon - Nikoh To\'y Taklifnomasi',
   description: 'Hamidullo va Muborakxonning to\'y marosimi uchun interaktiv 3D kitob ko\'rinishidagi premium taklifnoma.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#07090f',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
