@@ -10,8 +10,8 @@ const oldStandardTT = Old_Standard_TT({
 });
 
 export const metadata: Metadata = {
-  title: 'Hamidullo & Muborakhon - Nikoh To\'y Taklifnomasi',
-  description: 'Hamidullo va Muboraxonning to\'y marosimi uchun interaktiv 3D kitob ko\'rinishidagi premium taklifnoma.',
+  title: 'Hamidullo & Muborakxon - Nikoh To\'y Taklifnomasi',
+  description: 'Hamidullo va Muborakxonning to\'y marosimi uchun interaktiv 3D kitob ko\'rinishidagi premium taklifnoma.',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {

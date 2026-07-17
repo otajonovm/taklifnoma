@@ -1,6 +1,6 @@
 {
-  "name": "Hamidullo & Muborakhon - Wedding Invitation",
-  "description": "Hamidullo va Muboraxonning to'y marosimi uchun interaktiv 3D kitob ko'rinishidagi premium taklifnoma.",
+  "name": "Hamidullo & Muborakxon - Wedding Invitation",
+  "description": "Hamidullo va Muborakxonning to'y marosimi uchun interaktiv 3D kitob ko'rinishidagi premium taklifnoma.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

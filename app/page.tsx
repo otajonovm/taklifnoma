@@ -270,7 +270,7 @@ export default function WeddingInvitation() {
         </h1>
         <p className="font-serif text-lg italic text-[#D4AF37]/70 my-1">&amp;</p>
         <h1 className={`${isMobileView ? 'text-3xl' : 'text-4xl'} font-semibold text-gold-gradient tracking-wide mt-2 leading-tight`}>
-          Muborakhon
+          Muborakxon
         </h1>
       </div>
 
@@ -348,7 +348,7 @@ export default function WeddingInvitation() {
         
         <div className="flex flex-col gap-1 items-center justify-center my-1">
           <span className="font-display text-[9px] tracking-widest text-[#D4AF37] font-bold">Kelin &amp; Kuyov:</span>
-          <span className="font-display text-lg text-gray-950 tracking-wide font-bold">Hamidullo &amp; Muborakhon</span>
+          <span className="font-display text-lg text-gray-950 tracking-wide font-bold">Hamidullo &amp; Muborakxon</span>
         </div>
 
         <p className="font-serif text-[10px] leading-relaxed text-gray-500">
